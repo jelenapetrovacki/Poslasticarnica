@@ -1,0 +1,16 @@
+{
+    "inputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "#_custom_mule_metadata_type_#",
+            "typeId": "poslasticaMD"
+        }
+    },
+    "outputMessageMetadata": {
+        "messagePayload": {
+            "connectorName": "#_custom_mule_metadata_type_#",
+            "typeId": "poslasticaMD"
+        }
+    },
+    "id": "35c4d257-217f-4341-87cd-450ef8b3f9ff",
+    "version": "5.2.0.0"
+}

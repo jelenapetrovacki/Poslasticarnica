@@ -1,0 +1,33 @@
+[
+  {
+    "idPoslastica": 4,
+    "kolicinaMaterijala": 10.0,
+    "jedinicaMereMaterijala": "l",
+    "vrstaMaterijala": "Ulje",
+    "cenaMaterijala": 120.0
+  }
+][
+  {
+    "idPoslastica": 4,
+    "kolicinaMaterijala": 10.0,
+    "jedinicaMereMaterijala": "l",
+    "vrstaMaterijala": "Ulje",
+    "cenaMaterijala": 120.0
+  }
+][
+  {
+    "idPoslastica": 3,
+    "kolicinaMaterijala": 5.0,
+    "jedinicaMereMaterijala": "kom",
+    "vrstaMaterijala": "Mleko u prahu",
+    "cenaMaterijala": 120.0
+  }
+][
+  {
+    "idPoslastica": 4,
+    "kolicinaMaterijala": 10.0,
+    "jedinicaMereMaterijala": "l",
+    "vrstaMaterijala": "Ulje",
+    "cenaMaterijala": 120.0
+  }
+]

@@ -1,0 +1,312 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:file="http://www.mulesoft.org/schema/mule/file" xmlns:dw="http://www.mulesoft.org/schema/mule/ee/dw" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:metadata="http://www.mulesoft.org/schema/mule/metadata" xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/dw http://www.mulesoft.org/schema/mule/ee/dw/current/dw.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+    <http:listener-config name="apiraml-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <apikit:config name="apiraml-config" raml="apiraml.raml" consoleEnabled="false" doc:name="Router" keepRamlBaseUri="false">
+        <apikit:flow-mapping resource="/poslastica" action="get" flow-ref="GetAllPoslastica"/>
+        <apikit:flow-mapping resource="/poslastica" action="post" content-type="application/json" flow-ref="PostPoslastica"/>
+        <apikit:flow-mapping resource="/materijal" action="post" content-type="application/json" flow-ref="PostMaterijal"/>
+        <apikit:flow-mapping resource="/poslastica/{idPoslastica}" action="delete" flow-ref="DeletePoslasticaByID"/>
+        <apikit:flow-mapping resource="/poslastica/{idPoslastica}" action="put" content-type="application/json" flow-ref="PutPoslasticaByID"/>
+        <apikit:flow-mapping resource="/poslastica/{idPoslastica}" action="get" flow-ref="GetPoslasticaByID"/>
+        <apikit:flow-mapping resource="/materijal/{idMaterijal}" action="get" flow-ref="GetMaterijalByID"/>
+        <apikit:flow-mapping resource="/materijal" action="get" flow-ref="GetAllMaterijal"/>
+        <apikit:flow-mapping resource="/materijal/{idMaterijal}" action="delete" flow-ref="DeleteMaterijalByID"/>
+        <apikit:flow-mapping resource="/materijal/{idMaterijal}" action="put" content-type="application/json" flow-ref="PutMaterijalByID"/>
+    </apikit:config>
+    <db:mysql-config name="MySQL_Configuration" host="localhost" port="3306" user="root" password="0637263646" database="poslasticarnica" doc:name="MySQL Configuration"/>
+    <file:connector name="File" outputPattern="Poslastice.txt" writeToDirectory="src/main/resources/Poslastice" autoDelete="true" outputAppend="true" streaming="true" validateConnections="true" doc:name="File"/>
+    <file:connector name="File1" outputPattern="Materijal.txt" writeToDirectory="src/main/resources/Materijal" autoDelete="true" outputAppend="true" streaming="true" validateConnections="true" doc:name="File"/>
+    <flow name="apiraml-main">
+        <http:listener config-ref="apiraml-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
+
+        <apikit:router config-ref="apiraml-config" doc:name="APIkit Router"/>
+        <exception-strategy ref="apiraml-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    <flow name="apiraml-console">
+        <http:listener config-ref="apiraml-httpListenerConfig" path="/console/*" doc:name="HTTP"/>
+        <apikit:console config-ref="apiraml-config" doc:name="APIkit Console"/>
+    </flow>
+    <flow name="PutMaterijalByID">
+        <set-variable variableName="idMaterijal" value="#[message.inboundProperties.'http.uri.params'.idMaterijal]" doc:name="Variable"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="bd6f8a0f-6942-48dc-afe4-91ef1191348e">
+
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	idPoslastica: payload01.idPoslastica,
+	kolicinaMaterijala: payload01.kolicinaMaterijala,
+	jedinicaMereMaterijala: payload01.jedinicaMereMaterijala,
+	vrstaMaterijala: payload01.vrstaMaterijala,
+	cenaMaterijala: payload01.cenaMaterijala
+})]]></dw:set-payload>
+        </dw:transform-message>
+
+        <set-variable variableName="data" value="#[message.payload]" doc:name="Save Data" mimeType="application/json"/>
+
+        <db:update config-ref="MySQL_Configuration" doc:name="Update materijal">
+            <db:parameterized-query><![CDATA[update materijal set 
+idPoslastica = #[message.payload[0].idPoslastica],
+kolicinaMaterijala= #[message.payload[0].kolicinaMaterijala],
+jedinicaMereMaterijala= #[message.payload[0].jedinicaMereMaterijala],
+vrstaMaterijala= #[message.payload[0].vrstaMaterijala],
+cenaMaterijala= #[message.payload[0].cenaMaterijala]
+where idMaterijal = #[flowVars.idMaterijal]]]></db:parameterized-query>
+
+        </db:update>
+
+        <choice doc:name="Choice">
+            <when expression="#[message.payload == 0]">
+                <set-payload value="#[flowVars.data]" mimeType="application/json" doc:name="Set Payload"/>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+                <flow-ref name="PostMaterijal" doc:name="Flow Reference"/>
+            </when>
+            <otherwise>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+            </otherwise>
+        </choice>
+
+    </flow>
+    <flow name="PutPoslasticaByID">
+        <set-variable variableName="idPoslastica" value="#[message.inboundProperties.'http.uri.params'.idPoslastica]" doc:name="Variable"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="8bec029a-c35d-42a7-856c-4d37545246a1">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	vrstaPoslastice: payload01.vrstaPoslastice,
+	cenaPoslastice: payload01.cenaPoslastice,
+	nazivPoslastice: payload01.nazivPoslastice,
+	kolicinaDostupnih: payload01.kolicinaDostupnih,
+	dostupna: payload01.dostupna as :boolean
+})]]></dw:set-payload>
+        </dw:transform-message>
+        <set-variable variableName="dataForPayload" value="#[message.payload]" mimeType="application/json" doc:name="Save Data From Payload"/>
+        <db:update config-ref="MySQL_Configuration" doc:name="Update poslastica">
+            <db:parameterized-query><![CDATA[update poslastica 
+set nazivPoslastice = #[message.payload[0].nazivPoslastice] , vrstaPoslastice = #[message.payload[0].vrstaPoslastice], cenaPoslastice = #[message.payload[0].cenaPoslastice], dostupna = #[message.payload[0].dostupna], kolicinaDostupnih = #[message.payload[0].kolicinaDostupnih]
+where idPoslastica = #[flowVars.idPoslastica]]]></db:parameterized-query>
+        </db:update>
+        <choice doc:name="Choice">
+            <when expression="#[message.payload == 0]">
+                <set-payload value="#[flowVars.dataForPayload]" mimeType="application/json" doc:name="Set Payload"/>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+                <flow-ref name="PostPoslastica" doc:name="Flow Reference"/>
+            </when>
+            <otherwise>
+                <json:object-to-json-transformer doc:name="Object to JSON"/>
+            </otherwise>
+        </choice>
+
+    </flow>
+    <flow name="DeleteMaterijalByID">
+        <set-variable variableName="idMaterijal" value="#[message.inboundProperties.'http.uri.params'.idMaterijal]" doc:name="Variable"/>
+        <db:delete config-ref="MySQL_Configuration" doc:name="Delete from DB">
+            <db:parameterized-query><![CDATA[delete from materijal where idMaterijal=#[flowVars.idMaterijal]]]></db:parameterized-query>
+        </db:delete>
+        <validation:is-true expression="#[payload ==1]" doc:name="Validation"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <set-payload value="#['No ID found']" doc:name="Set Payload"/>
+            <set-property propertyName="http.status" value="404" doc:name="Property"/>
+        </catch-exception-strategy>
+
+    </flow>
+    <flow name="DeletePoslasticaByID">
+        <set-variable variableName="idPoslastice" value="#[message.inboundProperties.'http.uri.params'.idPoslastica]" doc:name="Variable"/>
+        <db:delete config-ref="MySQL_Configuration" doc:name="Delete from DB">
+            <db:parameterized-query><![CDATA[delete from poslastica where idPoslastica=#[flowVars.idPoslastice]]]></db:parameterized-query>
+        </db:delete>
+        <validation:is-true expression="#[payload ==1]" doc:name="Validation"/>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <set-payload value="#['No ID found']" doc:name="Set Payload"/>
+            <set-property propertyName="http.status" value="404" doc:name="Property"/>
+        </catch-exception-strategy>
+
+    </flow>
+    <flow name="GetAllMaterijal">
+        <db:select config-ref="MySQL_Configuration" doc:name="Database Select">
+            <db:parameterized-query><![CDATA[select * from materijal]]></db:parameterized-query>
+        </db:select>
+
+    </flow>
+    <flow name="GetAllPoslastica">
+        <set-variable variableName="dostupna" value="#[message.inboundProperties.'http.query.params'.dostupna]" doc:name="Variable"/>
+        <choice doc:name="Choice">
+            <when expression="#[flowVars.dostupna!=null]">
+                <db:select config-ref="MySQL_Configuration" doc:name="SelectAllWithParam">
+                    <db:dynamic-query><![CDATA[SELECT * FROM poslasticarnica.poslastica WHERE dostupna=#[flowVars.dostupna]]]></db:dynamic-query>
+                </db:select>
+            </when>
+            <otherwise>
+                <db:select config-ref="MySQL_Configuration" doc:name="SelectAllWithoutParam">
+                    <db:dynamic-query><![CDATA[SELECT * FROM poslasticarnica.poslastica]]></db:dynamic-query>
+                </db:select>
+            </otherwise>
+        </choice>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+
+    </flow>
+    <flow name="GetMaterijalByID">
+        <set-variable variableName="idMaterijal" value="#[message.inboundProperties.'http.uri.params'.idMaterijal]" doc:name="Variable"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from materijal where idMaterijal = #[flowVars.idMaterijal]]]></db:parameterized-query>
+        </db:select>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <validation:is-not-empty value="#[payload]" doc:name="Validation"/>
+        <dw:transform-message doc:name="Transform Message" metadata:id="464e7951-f3ae-4aa8-a2b2-748748d7baee">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	idPoslastica: payload01.idPoslastica,
+	kolicinaMaterijala: payload01.kolicinaMaterijala,
+	jedinicaMereMaterijala: payload01.jedinicaMereMaterijala,
+	vrstaMaterijala: payload01.vrstaMaterijala,
+	cenaMaterijala: payload01.cenaMaterijala
+})]]></dw:set-payload>
+        </dw:transform-message>
+        <file:outbound-endpoint path="src/main/resources/" outputPattern="Materijal.txt" connector-ref="File1" responseTimeout="10000" doc:name="File"/>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <set-payload value="#['No ID found']" doc:name="Set Payload"/>
+            <set-property propertyName="http.status" value="404" doc:name="Property"/>
+        </catch-exception-strategy>
+
+    </flow>
+    <flow name="GetPoslasticaByID">
+        <set-variable variableName="idPoslastica" value="#[message.inboundProperties.'http.uri.params'.idPoslastica]" doc:name="Variable"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from poslastica where idPoslastica = #[flowVars.idPoslastica]]]></db:parameterized-query>
+        </db:select>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <validation:is-not-empty value="#[payload]" doc:name="Validation"/>
+        <dw:transform-message doc:name="Transform Message">
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/json
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	cenaPoslastice: payload01.cenaPoslastice,
+	dostupna: payload01.dostupna as :number,
+	idPoslastica: payload01.idPoslastica,
+	kolicinaDostupnih: payload01.kolicinaDostupnih,
+	nazivPoslastice: payload01.nazivPoslastice,
+	vrstaPoslastice: payload01.vrstaPoslastice
+})]]></dw:set-payload>
+        </dw:transform-message>
+        <file:outbound-endpoint path="src/main/resources/" outputPattern="Poslastice.txt" connector-ref="File" responseTimeout="10000" doc:name="File"/>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <set-payload value="#['No ID found']" doc:name="Set Payload"/>
+            <set-property propertyName="http.status" value="404" doc:name="Property"/>
+        </catch-exception-strategy>
+
+    </flow>
+    <flow name="PostMaterijal">
+        <dw:transform-message doc:name="Transform Message" metadata:id="3276ce90-aa27-495b-87aa-c3318218b10b">
+            <dw:input-payload mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	idPoslastica: payload01.idPoslastica,
+	kolicinaMaterijala: payload01.kolicinaMaterijala,
+	jedinicaMereMaterijala: payload01.jedinicaMereMaterijala,
+	vrstaMaterijala: payload01.vrstaMaterijala,
+	cenaMaterijala: payload01.cenaMaterijala
+})]]></dw:set-payload>
+        </dw:transform-message>
+        <set-variable variableName="bodyMaterijala" value="#[payload]" doc:name="Sava Data"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database Select">
+            <db:parameterized-query><![CDATA[select vrstaMaterijala from materijal where vrstaMaterijala = #[message.payload[0].vrstaMaterijala]]]></db:parameterized-query>
+        </db:select>
+        <validation:is-empty value="#[payload]" doc:name="Validation"/>
+        <set-payload value="#[flowVars.bodyMaterijala]" doc:name="Set Payload"/>
+        <db:insert config-ref="MySQL_Configuration" doc:name="Insert into DB">
+            <db:parameterized-query><![CDATA[INSERT INTO materijal (idPoslastica,kolicinaMaterijala,jedinicaMereMaterijala,vrstaMaterijala,cenaMaterijala)
+VALUES (
+#[message.payload[0].idPoslastica],
+#[message.payload[0].kolicinaMaterijala],
+#[message.payload[0].jedinicaMereMaterijala],
+#[message.payload[0].vrstaMaterijala],
+#[message.payload[0].cenaMaterijala])]]></db:parameterized-query>
+        </db:insert>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <set-payload value="#['Vec postoji uneti materijal']" doc:name="Set Payload"/>
+            <set-property propertyName="http.status" value="400" doc:name="Property"/>
+        </catch-exception-strategy>
+
+    </flow>
+    <flow name="PostPoslastica">
+        <dw:transform-message doc:name="Transform Message" metadata:id="35c4d257-217f-4341-87cd-450ef8b3f9ff">
+            <dw:input-payload doc:sample="sample_data\list_json.json" mimeType="application/json"/>
+            <dw:set-payload><![CDATA[%dw 1.0
+%output application/java
+---
+payload map ((payload01 , indexOfPayload01) -> {
+	cenaPoslastice: payload01.cenaPoslastice,
+	dostupna: payload01.dostupna,
+	kolicinaDostupnih: payload01.kolicinaDostupnih,
+	nazivPoslastice: payload01.nazivPoslastice,
+	vrstaPoslastice: payload01.vrstaPoslastice
+})]]></dw:set-payload>
+        </dw:transform-message>
+        <set-variable variableName="bodyPoslastice" value="#[payload]" mimeType="application/java" doc:name="Save data"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database Select">
+            <db:parameterized-query><![CDATA[select nazivPoslastice from poslastica where nazivPoslastice = #[message.payload[0].nazivPoslastice]]]></db:parameterized-query>
+        </db:select>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <validation:is-empty value="#[payload]" doc:name="Validation"/>
+        <set-payload value="#[flowVars.bodyPoslastice]" doc:name="Set Payload"/>
+        <db:insert config-ref="MySQL_Configuration" doc:name="Insert into poslastica">
+            <db:parameterized-query><![CDATA[INSERT INTO poslastica (nazivPoslastice,vrstaPoslastice,cenaPoslastice,kolicinaDostupnih,dostupna)
+VALUES (
+#[message.payload[0].nazivPoslastice],
+#[message.payload[0].vrstaPoslastice],
+#[message.payload[0].cenaPoslastice],
+#[message.payload[0].kolicinaDostupnih],
+#[message.payload[0].dostupna])]]></db:parameterized-query>
+        </db:insert>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+        <catch-exception-strategy doc:name="Catch Exception Strategy">
+            <set-payload value="#['Vec postoji posastica sa unetim nazivom']" doc:name="Set Payload"/>
+            <set-property propertyName="http.status" value="400" doc:name="Property"/>
+        </catch-exception-strategy>
+
+    </flow>
+    <apikit:mapping-exception-strategy name="apiraml-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+</mule>

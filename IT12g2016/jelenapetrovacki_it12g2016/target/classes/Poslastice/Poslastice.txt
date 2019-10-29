@@ -1,0 +1,75 @@
+[
+  {
+    "cenaPoslastice": 150.0,
+    "dostupna": 1,
+    "idPoslastica": 6,
+    "kolicinaDostupnih": 18,
+    "nazivPoslastice": "Doboš",
+    "vrstaPoslastice": "torta"
+  }
+][
+  {
+    "cenaPoslastice": 90.0,
+    "dostupna": 1,
+    "idPoslastica": 3,
+    "kolicinaDostupnih": 32,
+    "nazivPoslastice": "Rafaelo",
+    "vrstaPoslastice": "kola?"
+  }
+][
+  {
+    "cenaPoslastice": 90.0,
+    "dostupna": 1,
+    "idPoslastica": 3,
+    "kolicinaDostupnih": 32,
+    "nazivPoslastice": "Rafaelo",
+    "vrstaPoslastice": "kola?"
+  }
+][
+  {
+    "cenaPoslastice": 90.0,
+    "dostupna": 1,
+    "idPoslastica": 3,
+    "kolicinaDostupnih": 32,
+    "nazivPoslastice": "Rafaelo",
+    "vrstaPoslastice": "kola?"
+  }
+][
+  {
+    "cenaPoslastice": 160.0,
+    "dostupna": 0,
+    "idPoslastica": 7,
+    "kolicinaDostupnih": 0,
+    "nazivPoslastice": "Švarcvarld",
+    "vrstaPoslastice": "torta"
+  }
+][
+  {
+    "cenaPoslastice": 160.0,
+    "dostupna": 0,
+    "idPoslastica": 7,
+    "kolicinaDostupnih": 0,
+    "nazivPoslastice": "Švarcvarld",
+    "vrstaPoslastice": "torta"
+  }
+][
+  
+][
+  {
+    "cenaPoslastice": 150.0,
+    "dostupna": 1,
+    "idPoslastica": 6,
+    "kolicinaDostupnih": 18,
+    "nazivPoslastice": "Doboš",
+    "vrstaPoslastice": "torta"
+  }
+][
+  {
+    "cenaPoslastice": 150.0,
+    "dostupna": 1,
+    "idPoslastica": 6,
+    "kolicinaDostupnih": 18,
+    "nazivPoslastice": "Doboš",
+    "vrstaPoslastice": "torta"
+  }
+]

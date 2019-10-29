@@ -1,0 +1,123 @@
+#%RAML 1.0
+title: poslasticarnica
+version: v1
+
+types:
+  MaterijalDataType: !include MaterijalDataType.raml
+  PoslasticaDataType: !include PoslasticaDataType.raml
+ 
+/poslastica:
+  get:
+    displayName: Get poslastica
+    queryParameters:
+     dostupna:
+        displayName: Get dostupne poslastice
+        required: false
+        enum: [0,1]
+    responses:
+      200:
+        body:
+          application/json:
+            type: PoslasticaDataType[]
+      400:
+        description: |
+          Bad Request.
+  post:
+    body:
+      application/json:
+        type: PoslasticaDataType[]
+    responses:
+        200:
+          body:
+            application/json:
+              type: PoslasticaDataType[]
+        400:
+          description: |
+            Bad Request. 
+  /{idPoslastica}:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: PoslasticaDataType[]
+        400:
+          description: |
+            Bad Request.
+    put:
+      body:
+        application/json:
+          type: PoslasticaDataType[]
+      responses:
+        200:
+          body:
+            application/json:
+              type: PoslasticaDataType[]
+        400:
+          description: |
+            Bad Request.
+    delete:
+      responses:
+        200:
+          body:
+            application/json:
+              type: PoslasticaDataType[]
+        400:
+          description: |
+            Bad Request.
+  
+/materijal:
+  get:
+    displayName: Get materijal
+    responses:
+      200:
+        body:
+          application/json:
+            type: MaterijalDataType[]
+      400:
+        description: |
+          Bad Request.
+  post:
+    body:
+      application/json:
+        type: MaterijalDataType[]
+    responses:
+      200:
+        body:
+          application/json:
+            type: MaterijalDataType[]
+      400:
+        description: |
+          Bad Request. 
+  /{idMaterijal}:
+    get:
+      responses:
+        200:
+          body:
+            application/json:
+              type: MaterijalDataType[]
+        400:
+          description: |
+            Bad Request.
+    put:
+      body:
+        application/json:
+          type: MaterijalDataType[]
+      responses:
+        200:
+          body:
+            application/json:
+              type: MaterijalDataType[]
+        400:
+          description: |
+            Bad Request.
+    delete:
+      responses:
+        200:
+          body:
+            application/json:
+              type: MaterijalDataType[]
+        400:
+          description: |
+            Bad Request.
+
